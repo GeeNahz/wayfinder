@@ -24,14 +24,16 @@ import {Socket} from "phoenix"
 import {LiveSocket} from "phoenix_live_view"
 import {hooks as colocatedHooks} from "phoenix-colocated/wayfinder"
 import topbar from "../vendor/topbar"
+import ChurchMap from "./hooks/church_map"
 import MapPicker from "./hooks/map_picker"
+import NearMe from "./hooks/near_me"
 import Turnstile from "./hooks/turnstile"
 
 const csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 const liveSocket = new LiveSocket("/live", Socket, {
   longPollFallbackMs: 2500,
   params: {_csrf_token: csrfToken},
-  hooks: {...colocatedHooks, MapPicker, Turnstile},
+  hooks: {...colocatedHooks, ChurchMap, MapPicker, NearMe, Turnstile},
 })
 
 // Show progress bar on live navigation and form submits

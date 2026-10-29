@@ -101,7 +101,9 @@ defmodule WayfinderWeb.CoreComponents do
   Variants: `primary`, `secondary` (default), `ghost` and `danger`.
   Extra classes passed with `class` are added on top of the defaults.
   """
-  attr :rest, :global, include: ~w(href navigate patch method download name value disabled type)
+  attr :rest, :global,
+    include: ~w(href navigate patch method download name value disabled type target rel)
+
   attr :class, :any, default: nil
   attr :variant, :string, default: "secondary", values: ~w(primary secondary ghost danger)
   attr :size, :string, default: "md", values: ~w(sm md)
@@ -474,6 +476,7 @@ defmodule WayfinderWeb.CoreComponents do
     default: "neutral",
     values: ~w(neutral brand success warning danger info)
 
+  attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -493,7 +496,8 @@ defmodule WayfinderWeb.CoreComponents do
     <span
       class={[
         "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
-        @color_class
+        @color_class,
+        @class
       ]}
       {@rest}
     >

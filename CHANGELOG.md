@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `/admin` live session guarded by the `:require_super_admin` on_mount hook, with a placeholder `Admin.DashboardLive`; super admins are redirected there after logging in.
 - Seed for the super admin, read from `ADMIN_EMAIL` / `ADMIN_PASSWORD`.
 - Custom Tailwind design tokens (`bg-surface`, `text-muted`, `border-line`, `bg-brand`, …) with light and dark themes in `assets/css/app.css`.
-- `badge`, `card` and `modal` core components; `button` gains `secondary`, `ghost` and `danger` variants and a `size` option.
+- `badge`, `card` and `modal` core components; `button` gains `secondary`, `ghost` and `danger` variants, a `size` option and `target`/`rel` attributes.
 - `Layouts.admin` sidebar layout for the super admin portal, and a `width` option (`narrow` / `wide` / `full`) on `Layouts.app`.
 - Leaflet 1.9.4 installed with pnpm (`assets/package.json`) plus shared map helpers in `assets/js/maps.js`; `mix assets.setup` / `assets.deploy` now run `pnpm install`.
 - Database tables and Ecto schemas for `denominations`, `denomination_requests`, `churches`, `activities`, `church_tokens` and `edit_requests`; `churches.owner_id` is a nullable link to `users`, reserved for future church owners.
@@ -41,10 +41,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MapPicker` and `Turnstile` JavaScript hooks (`assets/js/hooks/`); the Turnstile script is loaded from Cloudflare at runtime because it can't be bundled.
 - `WayfinderWeb.ClientIp`, which reads the visitor IP from the LiveView connection (`x-forwarded-for` behind Cloudflare); the live socket now passes `:peer_data` and `:x_headers` connect info.
 - "Register a church" call-to-action in the site header.
+- The home page (`/`, `DirectoryLive`) is now a map and list of approved churches. Filters (name/city text, denomination, weekday) are kept in the URL, and "Near me" uses browser geolocation to sort results by distance.
+- Public church page (`/churches/:slug`, `ChurchLive.Show`) with the weekly schedule grouped by day, a location map, and "Get directions" / "Open in Google Maps" links.
+- `ChurchMap` and `NearMe` JavaScript hooks; map popups are built with DOM APIs so names typed by the public can't inject HTML.
+- `WayfinderWeb.ChurchHelpers` for formatting times, distances, schedules and map markers.
+- `Directory.get_public_church_by_slug!/1`, which returns a 404 for churches that aren't approved.
 
 ### Changed
 - Restyled core components, the app layout and the generated log-in, confirmation and settings pages with the new theme.
-- Replaced the default Phoenix landing page with a temporary Wayfinder placeholder.
+- Replaced the default Phoenix landing page with the church directory (removed `PageController`).
 
 ### Removed
 - daisyUI and its theme plugin (`assets/vendor/daisyui*.js`).

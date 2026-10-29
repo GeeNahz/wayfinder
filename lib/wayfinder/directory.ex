@@ -152,13 +152,16 @@ defmodule Wayfinder.Directory do
   defp escape_like(text), do: String.replace(text, ~r/([\\%_])/, "\\\\\\1")
 
   @doc """
-  An approved church by its slug, or `nil`.
+  An approved church by its slug.
+
+  Raises `Ecto.NoResultsError` (shown as a 404 page) if there's no such
+  public church.
   """
-  def get_public_church_by_slug(slug) do
+  def get_public_church_by_slug!(slug) do
     Church
     |> where([c], c.slug == ^slug and c.status == :approved)
     |> preload([:denomination, :activities])
-    |> Repo.one()
+    |> Repo.one!()
   end
 
   ## Editing (manage link and admin)

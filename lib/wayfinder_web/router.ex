@@ -20,13 +20,15 @@ defmodule WayfinderWeb.Router do
   scope "/", WayfinderWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
     get "/churches/verify/:token", ChurchVerificationController, :show
 
     # Public pages. mount_current_scope lets the header show admin links.
     live_session :public,
       on_mount: [{WayfinderWeb.UserAuth, :mount_current_scope}] do
+      live "/", DirectoryLive, :index
+      # "/churches/new" must come before "/churches/:slug"
       live "/churches/new", ChurchLive.Register, :new
+      live "/churches/:slug", ChurchLive.Show, :show
     end
   end
 
