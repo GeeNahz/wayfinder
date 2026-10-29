@@ -82,9 +82,14 @@ defmodule Wayfinder.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
+      "assets.setup": [
+        "tailwind.install --if-missing",
+        "esbuild.install --if-missing",
+        "cmd --cd assets pnpm install --frozen-lockfile"
+      ],
       "assets.build": ["compile", "tailwind wayfinder", "esbuild wayfinder"],
       "assets.deploy": [
+        "cmd --cd assets pnpm install --frozen-lockfile",
         "tailwind wayfinder --minify",
         "esbuild wayfinder --minify",
         "phx.digest"

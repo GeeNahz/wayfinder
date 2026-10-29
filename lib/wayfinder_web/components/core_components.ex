@@ -8,12 +8,10 @@ defmodule WayfinderWeb.CoreComponents do
   with doc strings and declarative assigns. You may customize and style
   them in any way you want, based on your application growth and needs.
 
-  The foundation for styling is Tailwind CSS, a utility-first CSS framework,
-  augmented with daisyUI, a Tailwind CSS plugin that provides UI components
-  and themes. Here are useful references:
-
-    * [daisyUI](https://daisyui.com/docs/intro/) - a good place to get
-      started and see the available components.
+  Styling is plain Tailwind CSS. Colours come from the design tokens in
+  `assets/css/app.css` (e.g. `bg-surface`, `text-muted`, `border-line`,
+  `bg-brand`), so every component works in both light and dark mode.
+  Here are useful references:
 
     * [Tailwind CSS](https://tailwindcss.com) - the foundational framework
       we build on. You will use it for layout, sizing, flexbox, grid, and
@@ -63,19 +61,24 @@ defmodule WayfinderWeb.CoreComponents do
       id={@id}
       phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
-      class="toast toast-top toast-end z-50"
+      class="fixed top-4 right-4 z-50"
       {@rest}
     >
       <div class={[
-        "alert w-80 sm:w-96 max-w-80 sm:max-w-96 text-wrap",
-        @kind == :info && "alert-info",
-        @kind == :error && "alert-error"
+        "flex w-80 sm:w-96 items-start gap-3 rounded-xl border p-4 text-sm shadow-lg",
+        "bg-surface text-ink",
+        @kind == :info && "border-info/30",
+        @kind == :error && "border-danger/30"
       ]}>
-        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0" />
-        <.icon :if={@kind == :error} name="hero-exclamation-circle" class="size-5 shrink-0" />
+        <.icon :if={@kind == :info} name="hero-information-circle" class="size-5 shrink-0 text-info" />
+        <.icon
+          :if={@kind == :error}
+          name="hero-exclamation-circle"
+          class="size-5 shrink-0 text-danger"
+        />
         <div>
           <p :if={@title} class="font-semibold">{@title}</p>
-          <p>{msg}</p>
+          <p class="text-muted">{msg}</p>
         </div>
         <div class="flex-1" />
         <button type="button" class="group self-start cursor-pointer" aria-label={gettext("close")}>
@@ -93,20 +96,37 @@ defmodule WayfinderWeb.CoreComponents do
 
       <.button>Send!</.button>
       <.button phx-click="go" variant="primary">Send!</.button>
-      <.button navigate={~p"/"}>Home</.button>
+      <.button navigate={~p"/"} variant="ghost" size="sm">Home</.button>
+
+  Variants: `primary`, `secondary` (default), `ghost` and `danger`.
+  Extra classes passed with `class` are added on top of the defaults.
   """
-  attr :rest, :global, include: ~w(href navigate patch method download name value disabled)
-  attr :class, :any
-  attr :variant, :string, values: ~w(primary)
+  attr :rest, :global, include: ~w(href navigate patch method download name value disabled type)
+  attr :class, :any, default: nil
+  attr :variant, :string, default: "secondary", values: ~w(primary secondary ghost danger)
+  attr :size, :string, default: "md", values: ~w(sm md)
   slot :inner_block, required: true
 
   def button(%{rest: rest} = assigns) do
-    variants = %{"primary" => "btn-primary", nil => "btn-primary btn-soft"}
+    variants = %{
+      "primary" => "bg-brand text-on-brand shadow-sm hover:bg-brand-strong",
+      "secondary" => "border border-line bg-surface text-ink shadow-xs hover:bg-surface-2",
+      "ghost" => "text-ink hover:bg-surface-2",
+      "danger" => "bg-danger text-white shadow-sm hover:opacity-90"
+    }
+
+    sizes = %{"sm" => "h-8 px-3 text-xs", "md" => "h-10 px-4 text-sm"}
 
     assigns =
-      assign_new(assigns, :class, fn ->
-        ["btn", Map.fetch!(variants, assigns[:variant])]
-      end)
+      assign(assigns, :class, [
+        "inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg font-medium",
+        "transition duration-150 ease-out active:scale-[0.98]",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
+        "disabled:pointer-events-none disabled:opacity-50 phx-submit-loading:opacity-70",
+        Map.fetch!(variants, assigns.variant),
+        Map.fetch!(sizes, assigns.size),
+        assigns.class
+      ])
 
     if rest[:href] || rest[:navigate] || rest[:patch] do
       ~H"""
@@ -212,8 +232,8 @@ defmodule WayfinderWeb.CoreComponents do
       end)
 
     ~H"""
-    <div class="fieldset mb-2">
-      <label for={@id}>
+    <div class="mb-4">
+      <label for={@id} class="inline-flex cursor-pointer items-center gap-2 text-sm text-ink">
         <input
           type="hidden"
           name={@name}
@@ -221,17 +241,16 @@ defmodule WayfinderWeb.CoreComponents do
           disabled={@rest[:disabled]}
           form={@rest[:form]}
         />
-        <span class="label">
-          <input
-            type="checkbox"
-            id={@id}
-            name={@name}
-            value="true"
-            checked={@checked}
-            class={@class || "checkbox checkbox-sm"}
-            {@rest}
-          />{@label}
-        </span>
+        <input
+          type="checkbox"
+          id={@id}
+          name={@name}
+          value="true"
+          checked={@checked}
+          class={@class || "size-4 rounded border-line accent-(--wf-brand)"}
+          {@rest}
+        />
+        {@label}
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -240,13 +259,13 @@ defmodule WayfinderWeb.CoreComponents do
 
   def input(%{type: "select"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class={label_class()}>{@label}</span>
         <select
           id={@id}
           name={@name}
-          class={[@class || "w-full select", @errors != [] && (@error_class || "select-error")]}
+          class={[@class || field_class(), @errors != [] && (@error_class || field_error_class())]}
           multiple={@multiple}
           {@rest}
         >
@@ -261,15 +280,15 @@ defmodule WayfinderWeb.CoreComponents do
 
   def input(%{type: "textarea"} = assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class={label_class()}>{@label}</span>
         <textarea
           id={@id}
           name={@name}
           class={[
-            @class || "w-full textarea",
-            @errors != [] && (@error_class || "textarea-error")
+            @class || [field_class(), "min-h-24"],
+            @errors != [] && (@error_class || field_error_class())
           ]}
           {@rest}
         >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
@@ -282,17 +301,17 @@ defmodule WayfinderWeb.CoreComponents do
   # All other inputs text, datetime-local, url, password, etc. are handled here...
   def input(assigns) do
     ~H"""
-    <div class="fieldset mb-2">
+    <div class="mb-4">
       <label for={@id}>
-        <span :if={@label} class="label mb-1">{@label}</span>
+        <span :if={@label} class={label_class()}>{@label}</span>
         <input
           type={@type}
           name={@name}
           id={@id}
           value={Phoenix.HTML.Form.normalize_value(@type, @value)}
           class={[
-            @class || "w-full input",
-            @errors != [] && (@error_class || "input-error")
+            @class || field_class(),
+            @errors != [] && (@error_class || field_error_class())
           ]}
           {@rest}
         />
@@ -302,11 +321,22 @@ defmodule WayfinderWeb.CoreComponents do
     """
   end
 
+  # Shared classes for form fields, so every input looks the same.
+  defp label_class, do: "mb-1.5 block text-sm font-medium text-ink"
+
+  defp field_class do
+    "block w-full rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink shadow-xs " <>
+      "placeholder:text-muted/70 transition focus:border-brand focus:outline-none " <>
+      "focus:ring-3 focus:ring-brand/20"
+  end
+
+  defp field_error_class, do: "border-danger focus:border-danger focus:ring-danger/20"
+
   # Helper used by inputs to generate form errors
   defp error(assigns) do
     ~H"""
-    <p class="mt-1.5 flex gap-2 items-center text-sm text-error">
-      <.icon name="hero-exclamation-circle" class="size-5" />
+    <p class="mt-1.5 flex items-center gap-1.5 text-sm text-danger">
+      <.icon name="hero-exclamation-circle-mini" class="size-4" />
       {render_slot(@inner_block)}
     </p>
     """
@@ -321,16 +351,16 @@ defmodule WayfinderWeb.CoreComponents do
 
   def header(assigns) do
     ~H"""
-    <header class={[@actions != [] && "flex items-center justify-between gap-6", "pb-4"]}>
+    <header class={[@actions != [] && "flex flex-wrap items-center justify-between gap-4", "pb-6"]}>
       <div>
-        <h1 class="text-lg font-semibold leading-8">
+        <h1 class="text-2xl font-semibold tracking-tight text-ink">
           {render_slot(@inner_block)}
         </h1>
-        <p :if={@subtitle != []} class="text-sm text-base-content/70">
+        <p :if={@subtitle != []} class="mt-1 text-sm text-muted">
           {render_slot(@subtitle)}
         </p>
       </div>
-      <div class="flex-none">{render_slot(@actions)}</div>
+      <div class="flex flex-none items-center gap-2">{render_slot(@actions)}</div>
     </header>
     """
   end
@@ -367,34 +397,44 @@ defmodule WayfinderWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="table table-zebra">
-      <thead>
-        <tr>
-          <th :for={col <- @col}>{col[:label]}</th>
-          <th :if={@action != []}>
-            <span class="sr-only">{gettext("Actions")}</span>
-          </th>
-        </tr>
-      </thead>
-      <tbody id={@id} phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}>
-        <tr :for={row <- @rows} id={@row_id && @row_id.(row)}>
-          <td
-            :for={col <- @col}
-            phx-click={@row_click && @row_click.(row)}
-            class={@row_click && "hover:cursor-pointer"}
+    <div class="overflow-x-auto rounded-xl border border-line bg-surface">
+      <table class="w-full text-left text-sm">
+        <thead class="border-b border-line bg-surface-2 text-xs font-medium uppercase tracking-wide text-muted">
+          <tr>
+            <th :for={col <- @col} class="px-4 py-3">{col[:label]}</th>
+            <th :if={@action != []} class="px-4 py-3">
+              <span class="sr-only">{gettext("Actions")}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody
+          id={@id}
+          phx-update={is_struct(@rows, Phoenix.LiveView.LiveStream) && "stream"}
+          class="divide-y divide-line"
+        >
+          <tr
+            :for={row <- @rows}
+            id={@row_id && @row_id.(row)}
+            class="transition hover:bg-surface-2/60"
           >
-            {render_slot(col, @row_item.(row))}
-          </td>
-          <td :if={@action != []} class="w-0 font-semibold">
-            <div class="flex gap-4">
-              <%= for action <- @action do %>
-                {render_slot(action, @row_item.(row))}
-              <% end %>
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            <td
+              :for={col <- @col}
+              phx-click={@row_click && @row_click.(row)}
+              class={["px-4 py-3 align-middle", @row_click && "hover:cursor-pointer"]}
+            >
+              {render_slot(col, @row_item.(row))}
+            </td>
+            <td :if={@action != []} class="w-0 px-4 py-3 font-medium">
+              <div class="flex justify-end gap-3 whitespace-nowrap">
+                <%= for action <- @action do %>
+                  {render_slot(action, @row_item.(row))}
+                <% end %>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     """
   end
 
@@ -414,14 +454,142 @@ defmodule WayfinderWeb.CoreComponents do
 
   def list(assigns) do
     ~H"""
-    <ul class="list">
-      <li :for={item <- @item} class="list-row">
-        <div class="list-col-grow">
-          <div class="font-bold">{item.title}</div>
-          <div>{render_slot(item)}</div>
+    <dl class="divide-y divide-line">
+      <div :for={item <- @item} class="grid gap-1 py-3 sm:grid-cols-3 sm:gap-4">
+        <dt class="text-sm font-medium text-muted">{item.title}</dt>
+        <dd class="text-sm text-ink sm:col-span-2">{render_slot(item)}</dd>
+      </div>
+    </dl>
+    """
+  end
+
+  @doc """
+  Renders a small coloured pill, e.g. for a status.
+
+  ## Examples
+
+      <.badge color="success">Approved</.badge>
+  """
+  attr :color, :string,
+    default: "neutral",
+    values: ~w(neutral brand success warning danger info)
+
+  attr :rest, :global
+  slot :inner_block, required: true
+
+  def badge(assigns) do
+    colors = %{
+      "neutral" => "bg-surface-2 text-muted",
+      "brand" => "bg-brand-soft text-brand",
+      "success" => "bg-success-soft text-success",
+      "warning" => "bg-warning-soft text-warning",
+      "danger" => "bg-danger-soft text-danger",
+      "info" => "bg-info-soft text-info"
+    }
+
+    assigns = assign(assigns, :color_class, Map.fetch!(colors, assigns.color))
+
+    ~H"""
+    <span
+      class={[
+        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        @color_class
+      ]}
+      {@rest}
+    >
+      {render_slot(@inner_block)}
+    </span>
+    """
+  end
+
+  @doc """
+  Renders a bordered surface for grouping content.
+
+  ## Examples
+
+      <.card>
+        <:title>Location</:title>
+        Some content
+      </.card>
+  """
+  attr :class, :any, default: nil
+  attr :rest, :global
+  slot :title
+  slot :inner_block, required: true
+
+  def card(assigns) do
+    ~H"""
+    <section
+      class={["rounded-2xl border border-line bg-surface p-5 shadow-xs sm:p-6", @class]}
+      {@rest}
+    >
+      <h2 :if={@title != []} class="mb-4 text-base font-semibold text-ink">
+        {render_slot(@title)}
+      </h2>
+      {render_slot(@inner_block)}
+    </section>
+    """
+  end
+
+  @doc """
+  Renders a modal dialog.
+
+  The modal is shown when it is first rendered with `show`, or by calling
+  `show_modal("my-modal")` from a `phx-click`. Use `on_cancel` to decide what
+  happens when the visitor closes it (by default it just hides).
+
+  ## Examples
+
+      <.modal id="confirm-modal" show on_cancel={JS.patch(~p"/admin")}>
+        This is a modal.
+      </.modal>
+  """
+  attr :id, :string, required: true
+  attr :show, :boolean, default: false
+  attr :on_cancel, JS, default: %JS{}
+  slot :title
+  slot :inner_block, required: true
+
+  def modal(assigns) do
+    ~H"""
+    <div
+      id={@id}
+      phx-mounted={@show && show_modal(@id)}
+      phx-remove={hide_modal(@id)}
+      data-cancel={JS.exec(@on_cancel, "phx-remove")}
+      class="relative z-50 hidden"
+    >
+      <div id={"#{@id}-bg"} class="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity" />
+      <div
+        class="fixed inset-0 overflow-y-auto"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={"#{@id}-title"}
+      >
+        <div class="flex min-h-full items-center justify-center p-4">
+          <.focus_wrap
+            id={"#{@id}-container"}
+            phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
+            phx-key="escape"
+            phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+            class="relative w-full max-w-lg rounded-2xl border border-line bg-surface p-6 shadow-xl"
+          >
+            <button
+              type="button"
+              phx-click={JS.exec("data-cancel", to: "##{@id}")}
+              class="absolute top-4 right-4 cursor-pointer rounded-md p-1 text-muted transition hover:bg-surface-2 hover:text-ink"
+              aria-label={gettext("close")}
+            >
+              <.icon name="hero-x-mark" class="size-5" />
+            </button>
+            <h2 :if={@title != []} id={"#{@id}-title"} class="mb-4 pr-8 text-lg font-semibold">
+              {render_slot(@title)}
+            </h2>
+            <div id={"#{@id}-content"}>{render_slot(@inner_block)}</div>
+          </.focus_wrap>
         </div>
-      </li>
-    </ul>
+      </div>
+    </div>
     """
   end
 
@@ -473,6 +641,32 @@ defmodule WayfinderWeb.CoreComponents do
         {"transition-all ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
     )
+  end
+
+  def show_modal(js \\ %JS{}, id) when is_binary(id) do
+    js
+    |> JS.show(to: "##{id}")
+    |> JS.show(
+      to: "##{id}-bg",
+      time: 200,
+      transition: {"transition-all ease-out duration-200", "opacity-0", "opacity-100"}
+    )
+    |> show("##{id}-container")
+    |> JS.add_class("overflow-hidden", to: "body")
+    |> JS.focus_first(to: "##{id}-content")
+  end
+
+  def hide_modal(js \\ %JS{}, id) do
+    js
+    |> JS.hide(
+      to: "##{id}-bg",
+      time: 200,
+      transition: {"transition-all ease-in duration-200", "opacity-100", "opacity-0"}
+    )
+    |> hide("##{id}-container")
+    |> JS.hide(to: "##{id}", transition: {"block", "block", "hidden"})
+    |> JS.remove_class("overflow-hidden", to: "body")
+    |> JS.pop_focus()
   end
 
   @doc """

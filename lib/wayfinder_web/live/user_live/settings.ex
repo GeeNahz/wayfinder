@@ -28,7 +28,7 @@ defmodule WayfinderWeb.UserLive.Settings do
         <.button variant="primary" phx-disable-with="Changing...">Change Email</.button>
       </.form>
 
-      <div class="divider" />
+      <div class="my-8 h-px bg-line" />
 
       <.form
         for={@password_form}

@@ -9,9 +9,11 @@ defmodule WayfinderWeb.Admin.DashboardLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <Layouts.app flash={@flash} current_scope={@current_scope}>
-      <h1 id="admin-dashboard-title" class="text-2xl font-semibold">Admin dashboard</h1>
-    </Layouts.app>
+    <Layouts.admin flash={@flash} current_scope={@current_scope} active={:dashboard}>
+      <.header>
+        <span id="admin-dashboard-title">Dashboard</span>
+      </.header>
+    </Layouts.admin>
     """
   end
 end
