@@ -58,6 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - denomination requests (`/admin/denomination-requests`): approve as new or merge into an existing denomination;
   - edit requests (`/admin/edit-requests`): grant (emails a manage link) or reject.
 - `WayfinderWeb.AdminComponents` (`status_badge`, `stat_card`, `format_date`) and sidebar navigation for every admin section.
+- Seeds for 10 starting denominations and, in development only, 5 sample approved churches in Lagos with weekly activities; all seeds are idempotent.
+- Production runtime config: Resend mailer (`RESEND_API_KEY`, `MAIL_FROM`), Turnstile keys (`TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`) and the Nominatim user agent (`NOMINATIM_USER_AGENT`).
+- README covering setup, the registration and edit flows, church statuses, the future-owner design, a code map and production settings.
 
 ### Changed
 - Restyled core components, the app layout and the generated log-in, confirmation and settings pages with the new theme.

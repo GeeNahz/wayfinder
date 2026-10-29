@@ -144,7 +144,7 @@ defmodule WayfinderWeb.Admin.ChurchLive.Show do
           </.card>
         </div>
 
-        <div class="overflow-hidden rounded-2xl border border-line">
+        <div class="self-start overflow-hidden rounded-2xl border border-line">
           <div
             id="admin-church-map"
             phx-hook="ChurchMap"

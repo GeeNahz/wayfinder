@@ -100,21 +100,33 @@ if config_env() == :prod do
   #
   # Check `Plug.SSL` for all available options in `force_ssl`.
 
-  # ## Configuring the mailer
+  # ## Wayfinder services
   #
-  # In production you need to configure the mailer to use a different adapter.
-  # Here is an example configuration for Mailgun:
-  #
-  #     config :wayfinder, Wayfinder.Mailer,
-  #       adapter: Swoosh.Adapters.Mailgun,
-  #       api_key: System.get_env("MAILGUN_API_KEY"),
-  #       domain: System.get_env("MAILGUN_DOMAIN")
-  #
-  # Most non-SMTP adapters require an API client. Swoosh supports Req, Hackney,
-  # and Finch out-of-the-box. This configuration is typically done at
-  # compile-time in your config/prod.exs:
-  #
-  #     config :swoosh, :api_client, Swoosh.ApiClient.Req
-  #
-  # See https://swoosh.hexdocs.pm/Swoosh.html#module-installation for details.
+  # Emails are sent with Resend (https://resend.com). The "from" address
+  # must be on a domain you've verified in Resend.
+  config :wayfinder, Wayfinder.Mailer,
+    adapter: Swoosh.Adapters.Resend,
+    api_key:
+      System.get_env("RESEND_API_KEY") || raise("environment variable RESEND_API_KEY is missing.")
+
+  config :wayfinder,
+         :mail_from,
+         {"Wayfinder",
+          System.get_env("MAIL_FROM") || raise("environment variable MAIL_FROM is missing.")}
+
+  # Cloudflare Turnstile keys, from the Cloudflare dashboard (Turnstile > your site).
+  config :wayfinder, Wayfinder.Turnstile,
+    site_key:
+      System.get_env("TURNSTILE_SITE_KEY") ||
+        raise("environment variable TURNSTILE_SITE_KEY is missing."),
+    secret_key:
+      System.get_env("TURNSTILE_SECRET_KEY") ||
+        raise("environment variable TURNSTILE_SECRET_KEY is missing.")
+
+  # Nominatim asks for a User-Agent that identifies the app and a contact,
+  # e.g. "Wayfinder (admin@yourdomain.org)".
+  config :wayfinder, Wayfinder.Geocoding.Nominatim,
+    user_agent:
+      System.get_env("NOMINATIM_USER_AGENT") ||
+        raise("environment variable NOMINATIM_USER_AGENT is missing.")
 end
