@@ -9,7 +9,7 @@ defmodule Wayfinder.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Wayfinder", "contact@example.com"})
+      |> from(Mailer.default_from())
       |> subject(subject)
       |> text_body(body)
 

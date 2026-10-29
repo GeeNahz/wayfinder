@@ -23,6 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Activity` schema with a `days` array (1 = Monday … 7 = Sunday), so one activity can repeat on several days; the end time must be after the start time.
 - `ChurchToken`: hashed, expiring secret links for email verification (48 h) and managing a church (7 days).
 - `Wayfinder.Slug.slugify/1` helper.
+- `Wayfinder.Denominations` context: denomination CRUD and archiving, church counts, and denomination requests that can be approved as a new denomination or merged into an existing one (moving the waiting churches onto it).
+- `Wayfinder.Directory` context:
+  - registration saves an unverified church and emails a verification link; verifying sets it to `pending` and links a shared denomination request;
+  - public search by text, denomination, weekday and distance ("near me");
+  - manage-link tokens, church edits, and admin approve/reject/suspend/delete with notification emails.
+- `Wayfinder.EditRequests` context: stores an edit request only when the email matches the church's verified contact email (the response is the same either way); granting it emails a 7-day manage link to the contact email.
+- `Wayfinder.Directory.Policy.can_manage?/2`: the single authorization check for super admins, manage links and future church owners.
+- `Wayfinder.Turnstile.verify/2`: server-side Cloudflare Turnstile token check (Cloudflare test keys in dev).
+- `Wayfinder.Geocoding` behaviour with an OpenStreetMap Nominatim implementation for address search.
+- `Wayfinder.Directory.ChurchNotifier` emails: verification link, approved, rejected (with reason), and edit link granted.
+- `Wayfinder.Directory.Janitor`: an hourly process that deletes churches left unverified for more than 48 h and expired tokens.
+- `:mail_from` setting (`Wayfinder.Mailer.default_from/0`), used by every email.
 
 ### Changed
 - Restyled core components, the app layout and the generated log-in, confirmation and settings pages with the new theme.

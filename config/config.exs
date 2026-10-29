@@ -49,6 +49,20 @@ config :phoenix_live_view,
 # at the `config/runtime.exs`.
 config :wayfinder, Wayfinder.Mailer, adapter: Swoosh.Adapters.Local
 
+config :wayfinder, :mail_from, {"Wayfinder", "no-reply@example.com"}
+
+# Address search for the church form (see lib/wayfinder/geocoding.ex)
+config :wayfinder, :geocoder, Wayfinder.Geocoding.Nominatim
+
+config :wayfinder, Wayfinder.Geocoding.Nominatim,
+  user_agent: "Wayfinder church directory (development)"
+
+# Cloudflare Turnstile spam protection. These are Cloudflare's public
+# *testing* keys (always pass); production keys are set in runtime.exs.
+config :wayfinder, Wayfinder.Turnstile,
+  site_key: "1x00000000000000000000AA",
+  secret_key: "1x0000000000000000000000000000000AA"
+
 # Configure esbuild (the version is required)
 config :esbuild,
   version: "0.25.4",

@@ -42,3 +42,13 @@ config :phoenix_live_view,
 # Sort query params output of verified routes for robust url comparisons
 config :phoenix,
   sort_verified_routes_query_params: true
+
+# Don't run the hourly clean-up process in tests
+config :wayfinder, :start_janitor, false
+
+# Never call real external services from tests
+config :wayfinder, :geocoder, Wayfinder.Geocoding.Stub
+config :wayfinder, Wayfinder.Turnstile, req_options: [plug: {Req.Test, Wayfinder.Turnstile}]
+
+config :wayfinder, Wayfinder.Geocoding.Nominatim,
+  req_options: [plug: {Req.Test, Wayfinder.Geocoding.Nominatim}]
