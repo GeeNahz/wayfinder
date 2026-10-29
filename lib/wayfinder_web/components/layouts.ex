@@ -47,7 +47,14 @@ defmodule WayfinderWeb.Layouts do
           </.link>
 
           <div class="flex items-center gap-1 sm:gap-2">
-            <.nav_link navigate={~p"/"}>Find a church</.nav_link>
+            <.nav_link navigate={~p"/"} class="hidden sm:block">Find a church</.nav_link>
+            <.link
+              navigate={~p"/churches/new"}
+              id="register-church-link"
+              class="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-on-brand shadow-sm transition hover:bg-brand-strong"
+            >
+              Register a church
+            </.link>
             <.nav_link :if={Scope.super_admin?(@current_scope)} navigate={~p"/admin"}>
               Admin
             </.nav_link>
@@ -190,6 +197,7 @@ defmodule WayfinderWeb.Layouts do
   end
 
   attr :navigate, :string, required: true
+  attr :class, :any, default: nil
   attr :rest, :global
   slot :inner_block, required: true
 
@@ -197,7 +205,10 @@ defmodule WayfinderWeb.Layouts do
     ~H"""
     <.link
       navigate={@navigate}
-      class="rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface-2 hover:text-ink"
+      class={[
+        "rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:bg-surface-2 hover:text-ink",
+        @class
+      ]}
       {@rest}
     >
       {render_slot(@inner_block)}

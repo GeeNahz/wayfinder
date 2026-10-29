@@ -1,0 +1,12 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.card id="church-verified" class="text-center">
+    <div class="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-success-soft text-success">
+      <.icon name="hero-check-badge" class="size-6" />
+    </div>
+    <h1 class="text-xl font-semibold">Thanks, your email is confirmed</h1>
+    <p class="mx-auto mt-2 max-w-md text-sm text-muted">
+      {@church.name} is now waiting for review. We'll email you as soon as it's live on the map.
+    </p>
+    <.button navigate={~p"/"} class="mt-6">Back to the map</.button>
+  </.card>
+</Layouts.app>

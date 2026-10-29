@@ -35,6 +35,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Wayfinder.Directory.ChurchNotifier` emails: verification link, approved, rejected (with reason), and edit link granted.
 - `Wayfinder.Directory.Janitor`: an hourly process that deletes churches left unverified for more than 48 h and expired tokens.
 - `:mail_from` setting (`Wayfinder.Mailer.default_from/0`), used by every email.
+- Public "Register a church" page (`/churches/new`, `ChurchLive.Register`) covering details, denomination (pick from the list or request a new one), address with "Find on map", a draggable map pin, repeatable weekly activities with day pickers, the contact email and a Cloudflare Turnstile spam check.
+- `GET /churches/verify/:token` confirms the submitter's email and moves the church to admin review.
+- Shared `ChurchFormComponents.church_fields/1` and `ChurchLive.FormHelpers`, reused later by the manage-link and admin edit pages.
+- `MapPicker` and `Turnstile` JavaScript hooks (`assets/js/hooks/`); the Turnstile script is loaded from Cloudflare at runtime because it can't be bundled.
+- `WayfinderWeb.ClientIp`, which reads the visitor IP from the LiveView connection (`x-forwarded-for` behind Cloudflare); the live socket now passes `:peer_data` and `:x_headers` connect info.
+- "Register a church" call-to-action in the site header.
 
 ### Changed
 - Restyled core components, the app layout and the generated log-in, confirmation and settings pages with the new theme.

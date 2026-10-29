@@ -85,7 +85,7 @@ defmodule WayfinderWeb.UserLive.LoginTest do
       {:ok, _lv, html} = live(conn, ~p"/users/log-in")
 
       assert html =~ "You need to reauthenticate"
-      refute html =~ "Register"
+      refute html =~ "/users/register"
       assert html =~ "Log in with email"
 
       assert html =~

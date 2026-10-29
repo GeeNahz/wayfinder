@@ -1,0 +1,15 @@
+<Layouts.app flash={@flash} current_scope={@current_scope}>
+  <.card id="church-verification-invalid" class="text-center">
+    <div class="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-warning-soft text-warning">
+      <.icon name="hero-exclamation-triangle" class="size-6" />
+    </div>
+    <h1 class="text-xl font-semibold">This link has expired or was already used</h1>
+    <p class="mx-auto mt-2 max-w-md text-sm text-muted">
+      Confirmation links work once, for 48 hours. If your church hasn't been confirmed yet,
+      please register it again.
+    </p>
+    <.button navigate={~p"/churches/new"} variant="primary" class="mt-6">
+      Register a church
+    </.button>
+  </.card>
+</Layouts.app>
