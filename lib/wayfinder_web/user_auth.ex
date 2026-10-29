@@ -29,8 +29,8 @@ defmodule WayfinderWeb.UserAuth do
   @doc """
   Logs the user in.
 
-  Redirects to the session's `:user_return_to` path
-  or falls back to the `signed_in_path/1`.
+  Redirects to the session's `:user_return_to` path, otherwise super
+  admins go to their dashboard and everyone else to `signed_in_path/1`.
   """
   def log_in_user(conn, user, params \\ %{}) do
     user_return_to = get_session(conn, :user_return_to)
@@ -38,8 +38,11 @@ defmodule WayfinderWeb.UserAuth do
     conn
     |> create_or_extend_session(user, params)
     |> delete_session(:user_return_to)
-    |> redirect(to: user_return_to || signed_in_path(conn))
+    |> redirect(to: user_return_to || after_log_in_path(conn, user))
   end
+
+  defp after_log_in_path(_conn, %Accounts.User{role: :super_admin}), do: ~p"/admin"
+  defp after_log_in_path(conn, _user), do: signed_in_path(conn)
 
   @doc """
   Logs the user out.

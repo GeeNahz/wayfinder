@@ -65,6 +65,17 @@ defmodule WayfinderWeb.Router do
     live_session :super_admin,
       on_mount: [{WayfinderWeb.UserAuth, :require_super_admin}] do
       live "/", DashboardLive, :index
+
+      live "/churches", ChurchLive.Index, :index
+      live "/churches/:id", ChurchLive.Show, :show
+      live "/churches/:id/edit", ChurchLive.Edit, :edit
+
+      live "/denominations", DenominationLive.Index, :index
+      live "/denominations/new", DenominationLive.Index, :new
+      live "/denominations/:id/edit", DenominationLive.Index, :edit
+
+      live "/denomination-requests", DenominationRequestLive.Index, :index
+      live "/edit-requests", EditRequestLive.Index, :index
     end
   end
 

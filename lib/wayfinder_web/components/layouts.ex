@@ -141,16 +141,16 @@ defmodule WayfinderWeb.Layouts do
         </nav>
 
         <div class="hidden border-t border-line p-4 text-xs text-muted lg:absolute lg:inset-x-0 lg:bottom-0 lg:block">
-          <p class="truncate">{@current_scope.user.email}</p>
-          <div class="mt-3 flex items-center justify-between">
-            <div class="flex gap-3">
-              <.link navigate={~p"/"} class="hover:text-ink">View site</.link>
-              <.link href={~p"/users/settings"} class="hover:text-ink">Settings</.link>
-              <.link href={~p"/users/log-out"} method="delete" class="hover:text-ink">
-                Log out
-              </.link>
-            </div>
+          <div class="flex items-center justify-between gap-2">
+            <p class="truncate">{@current_scope.user.email}</p>
             <.theme_toggle />
+          </div>
+          <div class="mt-3 flex gap-4 whitespace-nowrap">
+            <.link navigate={~p"/"} class="hover:text-ink">View site</.link>
+            <.link href={~p"/users/settings"} class="hover:text-ink">Settings</.link>
+            <.link href={~p"/users/log-out"} method="delete" class="hover:text-ink">
+              Log out
+            </.link>
           </div>
         </div>
       </aside>
@@ -169,7 +169,12 @@ defmodule WayfinderWeb.Layouts do
   # The sections shown in the admin sidebar: {key, label, icon, path}.
   defp admin_nav_items do
     [
-      {:dashboard, "Dashboard", "hero-squares-2x2", ~p"/admin"}
+      {:dashboard, "Dashboard", "hero-squares-2x2", ~p"/admin"},
+      {:churches, "Churches", "hero-building-library", ~p"/admin/churches"},
+      {:denominations, "Denominations", "hero-tag", ~p"/admin/denominations"},
+      {:denomination_requests, "Denomination requests", "hero-inbox-arrow-down",
+       ~p"/admin/denomination-requests"},
+      {:edit_requests, "Edit requests", "hero-pencil-square", ~p"/admin/edit-requests"}
     ]
   end
 

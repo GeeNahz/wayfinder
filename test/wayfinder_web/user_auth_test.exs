@@ -29,6 +29,12 @@ defmodule WayfinderWeb.UserAuthTest do
       assert Accounts.get_user_by_session_token(token)
     end
 
+    test "sends super admins to the admin dashboard", %{conn: conn} do
+      admin = Wayfinder.AccountsFixtures.super_admin_fixture()
+      conn = UserAuth.log_in_user(conn, admin)
+      assert redirected_to(conn) == ~p"/admin"
+    end
+
     test "clears everything previously stored in the session", %{conn: conn, user: user} do
       conn = conn |> put_session(:to_be_removed, "value") |> UserAuth.log_in_user(user)
       refute get_session(conn, :to_be_removed)

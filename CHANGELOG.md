@@ -49,13 +49,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - "Request to edit" modal on the church page (email, optional message, Turnstile). It shows the same confirmation whether or not the email matches.
 - Manage-link edit page (`/churches/:slug/manage/:token`, `ChurchLive.Manage`) reusing the church form. Edits go live immediately, and expired, revoked or mismatched links show an explanation instead.
 - `Directory.get_church_by_slug/1`, and `FormHelpers.denomination_options/1` keeps a church's archived denomination selectable.
+- Super admin portal:
+  - dashboard (`/admin`) with counts of churches to review, denomination requests, edit requests and live churches, plus recent submissions;
+  - churches list (`/admin/churches`) with status tabs and search;
+  - church detail (`/admin/churches/:id`) with approve, reject (with a reason), suspend/unsuspend, revoke edit links and delete; approving is blocked while a denomination request is open;
+  - admin church edit page (`/admin/churches/:id/edit`);
+  - denominations (`/admin/denominations`) with create/edit modals, archive/restore and church counts;
+  - denomination requests (`/admin/denomination-requests`): approve as new or merge into an existing denomination;
+  - edit requests (`/admin/edit-requests`): grant (emails a manage link) or reject.
+- `WayfinderWeb.AdminComponents` (`status_badge`, `stat_card`, `format_date`) and sidebar navigation for every admin section.
 
 ### Changed
 - Restyled core components, the app layout and the generated log-in, confirmation and settings pages with the new theme.
 - Replaced the default Phoenix landing page with the church directory (removed `PageController`).
 
-### Fixed
-- Clearing a trimmed text field (church name, contact email, denomination name, edit-request email) no longer crashes the changeset with `FunctionClauseError` in `String.trim/1`.
-
 ### Removed
 - daisyUI and its theme plugin (`assets/vendor/daisyui*.js`).
+
+### Fixed
+- Super admins are now redirected to `/admin` after logging in instead of the home page.
+- Clearing a trimmed text field (church name, contact email, denomination name, edit-request email) no longer crashes the changeset with `FunctionClauseError` in `String.trim/1`.
