@@ -1,26 +1,48 @@
 defmodule WayfinderWeb.ChurchLive.FormHelpers do
   @moduledoc """
   Small helpers shared by every LiveView that shows the church form
-  (`WayfinderWeb.ChurchFormComponents`). They work on the raw form params
-  (a map with string keys) and return new params.
+  (`WayfinderWeb.ChurchFormComponents`).
+
+  Those LiveViews keep two assigns: `:params` (the raw form params, a map
+  with string keys) and `:form` (built from a changeset). The helpers read
+  the current values from the form and return new params.
   """
   alias Wayfinder.Denominations
+  alias Wayfinder.Directory.Church
   alias Wayfinder.Geocoding
 
-  @doc "`[{name, id}]` options for the denomination select."
-  def denomination_options do
-    Enum.map(Denominations.list_active_denominations(), &{&1.name, &1.id})
+  @address_fields [:address_line1, :city, :region, :postal_code, :country]
+
+  @doc """
+  `[{name, id}]` options for the denomination select.
+
+  Pass the church being edited so its denomination stays selectable even
+  if it has since been archived.
+  """
+  def denomination_options(church \\ nil) do
+    active = Denominations.list_active_denominations()
+
+    denominations =
+      case church do
+        %Church{denomination: %{} = current} ->
+          if Enum.any?(active, &(&1.id == current.id)), do: active, else: active ++ [current]
+
+        _ ->
+          active
+      end
+
+    Enum.map(denominations, &{&1.name, &1.id})
   end
 
   @doc """
-  Searches for the address typed into the form.
+  Searches for the address currently in the form.
 
   Returns `{:ok, places}` or `{:error, message}` with a message to show.
   """
-  def geocode(params) do
+  def geocode(%Phoenix.HTML.Form{} = form) do
     query =
-      ~w(address_line1 city region postal_code country)
-      |> Enum.map(&params[&1])
+      @address_fields
+      |> Enum.map(&form[&1].value)
       |> Enum.reject(&(&1 in [nil, ""]))
       |> Enum.join(", ")
 
@@ -43,10 +65,10 @@ defmodule WayfinderWeb.ChurchLive.FormHelpers do
   Copies a picked search result into the params: the coordinates always,
   and the city/region/postal code/country only where they're still blank.
   """
-  def apply_place(params, place) do
+  def apply_place(params, %Phoenix.HTML.Form{} = form, place) do
     blanks_filled =
       for field <- [:city, :region, :postal_code, :country],
-          params[to_string(field)] in [nil, ""],
+          form[field].value in [nil, ""],
           place[field],
           into: %{},
           do: {to_string(field), place[field]}

@@ -39,3 +39,68 @@ defmodule WayfinderWeb.ChurchLive.ShowTest do
     end
   end
 end
+
+defmodule WayfinderWeb.ChurchLive.ShowEditRequestTest do
+  use WayfinderWeb.ConnCase, async: true
+
+  import Phoenix.LiveViewTest
+  import Wayfinder.DirectoryFixtures
+
+  alias Wayfinder.EditRequests
+
+  setup %{conn: conn} do
+    church = church_fixture()
+    {:ok, view, _html} = live(conn, ~p"/churches/#{church.slug}")
+    view |> element("#open-edit-request") |> render_click()
+
+    %{church: church, view: view}
+  end
+
+  defp stub_turnstile(success?) do
+    Req.Test.stub(Wayfinder.Turnstile, &Req.Test.json(&1, %{"success" => success?}))
+  end
+
+  test "opens the request form", %{view: view} do
+    assert has_element?(view, "#edit-request-form")
+    assert has_element?(view, "#edit-request-turnstile[phx-hook=Turnstile]")
+  end
+
+  test "stores a request for the registered email", %{church: church, view: view} do
+    stub_turnstile(true)
+
+    view
+    |> form("#edit-request-form", edit_request: %{email: church.contact_email})
+    |> render_submit(%{"cf-turnstile-response" => "token"})
+
+    assert has_element?(view, "#edit-request-sent")
+    assert EditRequests.count_pending_edit_requests() == 1
+  end
+
+  test "shows the same message for an unknown email", %{view: view} do
+    stub_turnstile(true)
+
+    view
+    |> form("#edit-request-form", edit_request: %{email: "stranger@example.com"})
+    |> render_submit(%{"cf-turnstile-response" => "token"})
+
+    assert has_element?(view, "#edit-request-sent")
+    assert EditRequests.count_pending_edit_requests() == 0
+  end
+
+  test "requires the spam check", %{church: church, view: view} do
+    stub_turnstile(false)
+
+    view
+    |> form("#edit-request-form", edit_request: %{email: church.contact_email})
+    |> render_submit(%{"cf-turnstile-response" => "token"})
+
+    refute has_element?(view, "#edit-request-sent")
+    assert_push_event(view, "turnstile:reset", %{})
+    assert EditRequests.count_pending_edit_requests() == 0
+  end
+
+  test "validates the email", %{view: view} do
+    view |> form("#edit-request-form", edit_request: %{email: "nope"}) |> render_change()
+    assert has_element?(view, "#edit-request-form", "must be a valid email address")
+  end
+end

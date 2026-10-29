@@ -28,7 +28,7 @@ defmodule Wayfinder.EditRequests.EditRequest do
   def changeset(edit_request, attrs) do
     edit_request
     |> cast(attrs, [:email, :message])
-    |> update_change(:email, &String.trim/1)
+    |> update_change(:email, &trim/1)
     |> validate_required([:email], message: "can't be blank")
     |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+\.[^@,;\s]+$/,
       message: "must be a valid email address"
@@ -43,4 +43,8 @@ defmodule Wayfinder.EditRequests.EditRequest do
       resolved_at: DateTime.utc_now(:second)
     )
   end
+
+  # Like String.trim/1, but leaves nil alone (cast turns blank strings into nil).
+  defp trim(nil), do: nil
+  defp trim(text), do: String.trim(text)
 end

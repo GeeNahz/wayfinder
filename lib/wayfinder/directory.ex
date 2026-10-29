@@ -167,6 +167,15 @@ defmodule Wayfinder.Directory do
   ## Editing (manage link and admin)
 
   @doc """
+  Any church (whatever its status) by slug, ready for the edit form, or `nil`.
+  """
+  def get_church_by_slug(slug) do
+    Church
+    |> Repo.get_by(slug: slug)
+    |> preload_for_form()
+  end
+
+  @doc """
   The church a valid manage link points to, or `nil`.
   """
   def get_church_by_manage_token(encoded_token) do

@@ -29,6 +29,7 @@ defmodule WayfinderWeb.Router do
       # "/churches/new" must come before "/churches/:slug"
       live "/churches/new", ChurchLive.Register, :new
       live "/churches/:slug", ChurchLive.Show, :show
+      live "/churches/:slug/manage/:token", ChurchLive.Manage, :edit
     end
   end
 

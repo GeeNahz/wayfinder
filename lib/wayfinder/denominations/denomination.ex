@@ -20,7 +20,7 @@ defmodule Wayfinder.Denominations.Denomination do
   def changeset(denomination, attrs) do
     denomination
     |> cast(attrs, [:name, :description])
-    |> update_change(:name, &String.trim/1)
+    |> update_change(:name, &trim/1)
     |> validate_required([:name])
     |> validate_length(:name, max: 120)
     |> validate_length(:description, max: 1000)
@@ -38,4 +38,8 @@ defmodule Wayfinder.Denominations.Denomination do
   end
 
   def archived?(%__MODULE__{archived_at: archived_at}), do: archived_at != nil
+
+  # Like String.trim/1, but leaves nil alone (cast turns blank strings into nil).
+  defp trim(nil), do: nil
+  defp trim(text), do: String.trim(text)
 end

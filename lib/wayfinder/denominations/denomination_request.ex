@@ -28,7 +28,7 @@ defmodule Wayfinder.Denominations.DenominationRequest do
   def changeset(request, attrs) do
     request
     |> cast(attrs, [:name])
-    |> update_change(:name, &String.trim/1)
+    |> update_change(:name, &trim/1)
     |> validate_required([:name])
     |> validate_length(:name, max: 120)
     |> unique_constraint(:name, name: :denomination_requests_pending_name_index)
@@ -45,4 +45,8 @@ defmodule Wayfinder.Denominations.DenominationRequest do
       resolved_at: DateTime.utc_now(:second)
     )
   end
+
+  # Like String.trim/1, but leaves nil alone (cast turns blank strings into nil).
+  defp trim(nil), do: nil
+  defp trim(text), do: String.trim(text)
 end

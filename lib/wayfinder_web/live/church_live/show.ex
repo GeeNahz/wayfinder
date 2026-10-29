@@ -1,14 +1,16 @@
 defmodule WayfinderWeb.ChurchLive.Show do
   @moduledoc """
   Public page for one approved church: details, map, directions and the
-  weekly schedule.
+  weekly schedule. The person who registered it can also ask to edit it
+  from here ("Request to edit").
   """
   use WayfinderWeb, :live_view
 
   import WayfinderWeb.ChurchHelpers
 
-  alias Wayfinder.Directory
+  alias Wayfinder.{Directory, EditRequests, Turnstile}
   alias Wayfinder.Directory.Church
+  alias WayfinderWeb.ClientIp
 
   @impl true
   def mount(%{"slug" => slug}, _session, socket) do
@@ -18,7 +20,9 @@ defmodule WayfinderWeb.ChurchLive.Show do
      socket
      |> assign(:page_title, church.name)
      |> assign(:church, church)
-     |> assign(:schedule, schedule_by_day(church.activities))}
+     |> assign(:schedule, schedule_by_day(church.activities))
+     |> assign(:client_ip, ClientIp.from_socket(socket))
+     |> assign(:edit_request_open?, false)}
   end
 
   @impl true
@@ -44,6 +48,9 @@ defmodule WayfinderWeb.ChurchLive.Show do
           </p>
         </div>
         <div class="flex flex-wrap gap-2">
+          <.button type="button" id="open-edit-request" phx-click="open_edit_request">
+            <.icon name="hero-pencil-square-mini" class="size-4" /> Request to edit
+          </.button>
           <.button
             href={directions_url(@church)}
             target="_blank"
@@ -136,7 +143,103 @@ defmodule WayfinderWeb.ChurchLive.Show do
           </.card>
         </div>
       </div>
+
+      <.modal
+        :if={@edit_request_open?}
+        id="edit-request-modal"
+        show
+        on_cancel={JS.push("close_edit_request")}
+      >
+        <:title>Request to edit {@church.name}</:title>
+        <%= if @edit_request_sent? do %>
+          <div id="edit-request-sent" class="text-sm text-muted">
+            <p>
+              Thanks! If that's the email this church was registered with, our team will review
+              your request and email you a private edit link.
+            </p>
+            <.button type="button" phx-click="close_edit_request" class="mt-6 w-full">
+              Close
+            </.button>
+          </div>
+        <% else %>
+          <p class="mb-4 text-sm text-muted">
+            Use the email address the church was registered with. Once an admin approves,
+            we'll send an edit link to that address.
+          </p>
+          <.form
+            for={@edit_request_form}
+            id="edit-request-form"
+            phx-change="validate_edit_request"
+            phx-submit="request_edit"
+          >
+            <.input field={@edit_request_form[:email]} type="email" label="Email" required />
+            <.input
+              field={@edit_request_form[:message]}
+              type="textarea"
+              label="What would you like to change? (optional)"
+              rows="3"
+            />
+            <div
+              id="edit-request-turnstile"
+              phx-hook="Turnstile"
+              phx-update="ignore"
+              data-sitekey={Turnstile.site_key()}
+              class="mb-4 min-h-16"
+            >
+            </div>
+            <.button
+              variant="primary"
+              id="submit-edit-request"
+              class="w-full"
+              phx-disable-with="Sending..."
+            >
+              Send request
+            </.button>
+          </.form>
+        <% end %>
+      </.modal>
     </Layouts.app>
     """
+  end
+
+  @impl true
+  def handle_event("open_edit_request", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(:edit_request_open?, true)
+     |> assign(:edit_request_sent?, false)
+     |> assign(:edit_request_form, to_form(EditRequests.change_edit_request()))}
+  end
+
+  def handle_event("close_edit_request", _params, socket) do
+    {:noreply, assign(socket, :edit_request_open?, false)}
+  end
+
+  def handle_event("validate_edit_request", %{"edit_request" => params}, socket) do
+    form =
+      params
+      |> EditRequests.change_edit_request()
+      |> to_form(action: :validate)
+
+    {:noreply, assign(socket, :edit_request_form, form)}
+  end
+
+  def handle_event("request_edit", %{"edit_request" => params} = form_data, socket) do
+    changeset = EditRequests.change_edit_request(params)
+
+    cond do
+      not changeset.valid? ->
+        {:noreply, assign(socket, :edit_request_form, to_form(changeset, action: :insert))}
+
+      Turnstile.verify(form_data["cf-turnstile-response"], socket.assigns.client_ip) != :ok ->
+        {:noreply,
+         socket
+         |> put_flash(:error, "Please complete the spam check and try again.")
+         |> push_event("turnstile:reset", %{})}
+
+      true ->
+        :ok = EditRequests.request_edit(socket.assigns.church, params)
+        {:noreply, assign(socket, :edit_request_sent?, true)}
+    end
   end
 end

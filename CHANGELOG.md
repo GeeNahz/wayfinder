@@ -46,10 +46,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ChurchMap` and `NearMe` JavaScript hooks; map popups are built with DOM APIs so names typed by the public can't inject HTML.
 - `WayfinderWeb.ChurchHelpers` for formatting times, distances, schedules and map markers.
 - `Directory.get_public_church_by_slug!/1`, which returns a 404 for churches that aren't approved.
+- "Request to edit" modal on the church page (email, optional message, Turnstile). It shows the same confirmation whether or not the email matches.
+- Manage-link edit page (`/churches/:slug/manage/:token`, `ChurchLive.Manage`) reusing the church form. Edits go live immediately, and expired, revoked or mismatched links show an explanation instead.
+- `Directory.get_church_by_slug/1`, and `FormHelpers.denomination_options/1` keeps a church's archived denomination selectable.
 
 ### Changed
 - Restyled core components, the app layout and the generated log-in, confirmation and settings pages with the new theme.
 - Replaced the default Phoenix landing page with the church directory (removed `PageController`).
+
+### Fixed
+- Clearing a trimmed text field (church name, contact email, denomination name, edit-request email) no longer crashes the changeset with `FunctionClauseError` in `String.trim/1`.
 
 ### Removed
 - daisyUI and its theme plugin (`assets/vendor/daisyui*.js`).

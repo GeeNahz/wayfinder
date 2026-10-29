@@ -104,7 +104,7 @@ defmodule WayfinderWeb.ChurchLive.Register do
   end
 
   def handle_event("geocode", _params, socket) do
-    case FormHelpers.geocode(socket.assigns.params) do
+    case FormHelpers.geocode(socket.assigns.form) do
       {:ok, places} -> {:noreply, assign(socket, places: places, geocode_error: nil)}
       {:error, message} -> {:noreply, assign(socket, places: [], geocode_error: message)}
     end
@@ -112,7 +112,7 @@ defmodule WayfinderWeb.ChurchLive.Register do
 
   def handle_event("pick_place", %{"index" => index}, socket) do
     place = Enum.at(socket.assigns.places, String.to_integer(index))
-    params = FormHelpers.apply_place(socket.assigns.params, place)
+    params = FormHelpers.apply_place(socket.assigns.params, socket.assigns.form, place)
 
     {:noreply,
      socket

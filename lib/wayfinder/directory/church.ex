@@ -87,7 +87,7 @@ defmodule Wayfinder.Directory.Church do
   def form_changeset(church, attrs) do
     church
     |> cast(attrs, @form_fields)
-    |> update_change(:name, &String.trim/1)
+    |> update_change(:name, &trim/1)
     |> validate_required([:name, :address_line1, :city, :country, :latitude, :longitude],
       message: "can't be blank"
     )
@@ -116,7 +116,7 @@ defmodule Wayfinder.Directory.Church do
     |> form_changeset(attrs)
     |> cast(attrs, [:contact_email])
     |> validate_required([:contact_email], message: "can't be blank")
-    |> update_change(:contact_email, &String.trim/1)
+    |> update_change(:contact_email, &trim/1)
     |> validate_format(:contact_email, ~r/^[^@,;\s]+@[^@,;\s]+\.[^@,;\s]+$/,
       message: "must be a valid email address"
     )
@@ -136,7 +136,7 @@ defmodule Wayfinder.Directory.Church do
 
       is_binary(requested) and String.trim(requested) != "" ->
         changeset
-        |> update_change(:requested_denomination, &String.trim/1)
+        |> update_change(:requested_denomination, &trim/1)
         |> validate_length(:requested_denomination, max: 120)
 
       true ->
@@ -189,4 +189,8 @@ defmodule Wayfinder.Directory.Church do
   def denomination_name(%__MODULE__{denomination: %{name: name}}), do: name
   def denomination_name(%__MODULE__{requested_denomination: name}) when is_binary(name), do: name
   def denomination_name(_church), do: nil
+
+  # Like String.trim/1, but leaves nil alone (cast turns blank strings into nil).
+  defp trim(nil), do: nil
+  defp trim(text), do: String.trim(text)
 end
